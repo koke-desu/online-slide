@@ -1,6 +1,9 @@
 import { atom, selector } from "recoil";
 import { mouseStateAtom } from "./mouseState";
 
+// ページのヘッダーの高さ。Canvasがこれに被らないように表示されているので、考慮する必要あり。
+const HEADER_HEIGHT = 48;
+
 type CanvasState = {
   ctx: CanvasRenderingContext2D | null;
   scale: number;
@@ -52,7 +55,7 @@ export const canvasMousePositionSelector = selector({
 
     return {
       x: (clientX - translate.x) / scale,
-      y: (clientY - translate.y - 48) / scale,
+      y: (clientY - translate.y - HEADER_HEIGHT) / scale,
     };
   },
 });
