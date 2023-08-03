@@ -1,13 +1,13 @@
 "use client";
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
-import { focusedElementAtom } from "@/store/focusedElement";
+import { focusedElementIDAtom, focusedElementSelector } from "@/store/focusedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { windowSizeAtom } from "@/store/windowSize";
 import { CanvasElement } from "@/types/CanvasElement";
 import Head from "next/head";
 import React, { useEffect, useRef } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 type Props = {};
 
 const MainCanvas: React.FC<Props> = ({}) => {
@@ -16,7 +16,8 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
   const mouseState = useRecoilValue(mouseStateAtom);
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
-  const [focusedElement, setFocusedElement] = useRecoilState(focusedElementAtom);
+  const setFocusedElementID = useSetRecoilState(focusedElementIDAtom);
+  const focusedElement = useRecoilValue(focusedElementSelector);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -34,7 +35,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
       y,
     };
     setCanvasElements([...canvasElements, element]);
-    setFocusedElement(element);
+    setFocusedElementID(element.id);
   };
 
   const onMouseUp = () => {
