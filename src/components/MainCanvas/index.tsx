@@ -20,6 +20,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button !== 0) return;
     const { x, y } = canvasMousePosition;
 
     const id = new Date().getTime().toString();
@@ -45,21 +46,31 @@ const MainCanvas: React.FC<Props> = ({}) => {
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!mouseState.isClicked) return;
+    if (mouseState.buttonClicked.left) {
+      setCanvasElements(
+        canvasElements.map((element) => {
+          if (element.id !== focusedElement?.id) return element;
 
-    setCanvasElements(
-      canvasElements.map((element) => {
-        if (element.id !== focusedElement?.id) return element;
+          const { x, y } = canvasMousePosition;
 
-        const { x, y } = canvasMousePosition;
+          return {
+            ...element,
+            width: x - element.x,
+            height: y - element.y,
+          };
+        })
+      );
+    }
 
-        return {
-          ...element,
-          width: x - element.x,
-          height: y - element.y,
-        };
-      })
-    );
+    if (mouseState.buttonClicked.wheel) {
+      setCanvasState((canvasState) => ({
+        ...canvasState,
+        translate: {
+          x: canvasState.translate.x + e.movementX,
+          y: canvasState.translate.y + e.movementY,
+        },
+      }));
+    }
   };
 
   useEffect(() => {
@@ -74,17 +85,23 @@ const MainCanvas: React.FC<Props> = ({}) => {
       const context = canvasRef.current?.getContext("2d");
       if (!context) return;
 
+      // 初期化
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
+      // キャンバスを拡大・移動
       const { scale } = canvasState;
+      context.translate(canvasState.translate.x, canvasState.translate.y);
       context.scale(scale, scale);
+
+      // 要素を描画
       canvasElements.forEach((element) => {
         context.fillStyle = "red";
         context.fillRect(element.x, element.y, element.width, element.height);
       });
 
-      // 描画の拡大率をもとに戻す
+      // 描画の状態をもとに戻す
       context.scale(1 / scale, 1 / scale);
+      context.translate(-canvasState.translate.x, -canvasState.translate.y);
     };
 
     render();

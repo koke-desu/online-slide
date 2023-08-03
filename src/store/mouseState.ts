@@ -5,7 +5,11 @@ type MouseState = {
     clientX: number;
     clientY: number;
   };
-  isClicked: boolean;
+  buttonClicked: {
+    left: boolean;
+    wheel: boolean;
+    right: boolean;
+  };
 };
 
 export const mouseStateAtom = atom({
@@ -15,7 +19,11 @@ export const mouseStateAtom = atom({
       clientX: 0,
       clientY: 0,
     },
-    isClicked: false,
+    buttonClicked: {
+      left: false,
+      wheel: false,
+      right: false,
+    },
   },
   effects: [
     ({ setSelf }) => {
@@ -35,15 +43,24 @@ export const mouseStateAtom = atom({
     },
     ({ setSelf }) => {
       const handleMouseDown = (e: MouseEvent) => {
+        console.log(e.button);
         setSelf((state) => ({
           ...(state as MouseState),
-          isClicked: true,
+          buttonClicked: {
+            left: e.button === 0,
+            wheel: e.button === 1,
+            right: e.button === 2,
+          },
         }));
       };
       const handleMouseUp = (e: MouseEvent) => {
         setSelf((state) => ({
           ...(state as MouseState),
-          isClicked: false,
+          buttonClicked: {
+            left: false,
+            wheel: false,
+            right: false,
+          },
         }));
       };
       window.addEventListener("mousedown", handleMouseDown);
