@@ -1,57 +1,73 @@
 "use client";
+import { CanvasElement, canvasElementsAtom } from "@/store/canvasElements";
+import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
+import { focusedElementAtom } from "@/store/focusedElement";
+import { mouseStateAtom } from "@/store/mouseState";
+import { windowSizeAtom } from "@/store/windowSize";
 import Head from "next/head";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 type Props = {};
 
-type Element = { id: string; type: "rect"; width: number; height: number; x: number; y: number };
-
 const MainCanvas: React.FC<Props> = ({}) => {
+  const windowSize = useRecoilValue(windowSizeAtom);
+  const [canvasState, setCanvasState] = useRecoilState(canvasStateAtom);
+  const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
+  const mouseState = useRecoilValue(mouseStateAtom);
+  const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
+  const [focusedElement, setFocusedElement] = useRecoilState(focusedElementAtom);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [elements, setElements] = useState<Element[]>([]);
-  const [currentElementId, setCurrentElementId] = useState("");
-  const [scale, setScale] = useState(1);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsMouseDown(true);
+    const { x, y } = canvasMousePosition;
+
     const id = new Date().getTime().toString();
-    const element: Element = {
+    const element: CanvasElement = {
       id,
       type: "rect",
       width: 0,
       height: 0,
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
     };
-    setElements([...elements, element]);
-    setCurrentElementId(id);
+    setCanvasElements([...canvasElements, element]);
+    setFocusedElement(element);
   };
 
-  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log("mouse up");
-    setIsMouseDown(false);
-
-    const currentElement = elements.find((element) => element.id === currentElementId);
+  const onMouseUp = () => {
+    const currentElement = canvasElements.find((element) => element.id === focusedElement?.id);
     if (!currentElement) return;
+
     if (currentElement.height === 0 || currentElement.width === 0) {
-      setElements(elements.filter((element) => element.id !== currentElementId));
+      setCanvasElements(canvasElements.filter((element) => element.id !== focusedElement?.id));
     }
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isMouseDown) return;
+    if (!mouseState.isClicked) return;
 
-    setElements(
-      elements.map((element) => {
-        if (element.id !== currentElementId) return element;
+    setCanvasElements(
+      canvasElements.map((element) => {
+        if (element.id !== focusedElement?.id) return element;
+
+        const { x, y } = canvasMousePosition;
+
         return {
           ...element,
-          width: e.clientX - element.x,
-          height: e.clientY - element.y,
+          width: x - element.x,
+          height: y - element.y,
         };
       })
     );
   };
+
+  useEffect(() => {
+    setCanvasState((canvasState) => ({
+      ...canvasState,
+      ctx: canvasRef.current?.getContext("2d") || null,
+    }));
+  }, [setCanvasState]);
 
   useEffect(() => {
     const render = () => {
@@ -60,8 +76,9 @@ const MainCanvas: React.FC<Props> = ({}) => {
 
       context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
+      const { scale } = canvasState;
       context.scale(scale, scale);
-      elements.forEach((element) => {
+      canvasElements.forEach((element) => {
         context.fillStyle = "red";
         context.fillRect(element.x, element.y, element.width, element.height);
       });
@@ -73,37 +90,13 @@ const MainCanvas: React.FC<Props> = ({}) => {
     render();
 
     const interval = setInterval(() => {
-      console.log("update");
+      // console.log("update");
       render();
     }, 1000 / 30);
     return () => {
       clearInterval(interval);
     };
-  }, [elements, scale]);
-
-  useEffect(() => {
-    const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey) return;
-
-      e.preventDefault();
-      setScale((scale) => {
-        const scrollAmount = e.deltaY;
-        const scaleAmount = 0.1;
-        const newScale = scale + (scrollAmount > 0 ? -scaleAmount : scaleAmount);
-
-        if (newScale >= 0.01 && newScale <= 10) {
-          return newScale;
-        }
-
-        return scale;
-      });
-    };
-    document.addEventListener("wheel", onWheel, { passive: false });
-
-    return () => {
-      document.removeEventListener("wheel", onWheel);
-    };
-  }, [scale]);
+  }, [canvasElements, canvasState]);
 
   return (
     <>
@@ -115,8 +108,8 @@ const MainCanvas: React.FC<Props> = ({}) => {
         ></meta>
       </Head>
       <canvas
-        height={window.innerHeight}
-        width={window.innerWidth}
+        height={windowSize.height}
+        width={windowSize.width}
         ref={canvasRef}
         className="absolute top-0 left-0 z-0 bg-gray-200"
         onMouseDown={onMouseDown}
