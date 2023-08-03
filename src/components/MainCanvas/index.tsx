@@ -1,9 +1,10 @@
 "use client";
-import { CanvasElement, canvasElementsAtom } from "@/store/canvasElements";
+import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
 import { focusedElementAtom } from "@/store/focusedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { windowSizeAtom } from "@/store/windowSize";
+import { CanvasElement } from "@/types/CanvasElement";
 import Head from "next/head";
 import React, { useEffect, useRef } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
