@@ -1,4 +1,5 @@
 import MainCanvas from "@/components/MainCanvas";
+import RightControlPanel from "@/components/RightControlPanel";
 
 const Home = () => {
   return (
@@ -8,7 +9,7 @@ const Home = () => {
         <div className="relative h-full w-full">
           <div className="w-60 h-full absolute top-0 left-0 bg-white z-10"></div>
           <MainCanvas />
-          <div className="w-60 h-full absolute top-0 right-0 bg-white z-10"></div>
+          <RightControlPanel />
         </div>
       </div>
     </main>
