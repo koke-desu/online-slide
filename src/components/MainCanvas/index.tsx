@@ -3,6 +3,7 @@ import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
 import { focusedElementIDAtom, focusedElementSelector } from "@/store/focusedElement";
 import { mouseStateAtom } from "@/store/mouseState";
+import { toolbarStateAtom } from "@/store/toolbarState";
 import { windowSizeAtom } from "@/store/windowSize";
 import { CanvasElement } from "@/types/CanvasElement";
 import Head from "next/head";
@@ -18,6 +19,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
   const setFocusedElementID = useSetRecoilState(focusedElementIDAtom);
   const focusedElement = useRecoilValue(focusedElementSelector);
+  const toolbar = useRecoilValue(toolbarStateAtom);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -25,17 +27,22 @@ const MainCanvas: React.FC<Props> = ({}) => {
     if (e.button !== 0) return;
     const { x, y } = canvasMousePosition;
 
-    const id = new Date().getTime().toString();
-    const element: CanvasElement = {
-      id,
-      type: "rect",
-      width: 0,
-      height: 0,
-      x,
-      y,
-    };
-    setCanvasElements([...canvasElements, element]);
-    setFocusedElementID(element.id);
+    if (toolbar.selectedTool === "select") {
+      setFocusedElementID(element.id);
+    }
+
+    if (toolbar.selectedTool === "rectangle") {
+      const id = new Date().getTime().toString();
+      const element: CanvasElement = {
+        id,
+        type: "rectangle",
+        width: 0,
+        height: 0,
+        x,
+        y,
+      };
+      setCanvasElements([...canvasElements, element]);
+    }
   };
 
   const onMouseUp = () => {
@@ -48,6 +55,24 @@ const MainCanvas: React.FC<Props> = ({}) => {
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (mouseState.buttonClicked.right) {
+      if (!focusedElement) return;
+
+      setCanvasElements(
+        canvasElements.map((element) => {
+          if (element.id !== focusedElement?.id) return element;
+
+          const { x, y } = canvasMousePosition;
+
+          return {
+            ...element,
+            x,
+            y,
+          };
+        })
+      );
+    }
+
     if (mouseState.buttonClicked.left) {
       setCanvasElements(
         canvasElements.map((element) => {
@@ -98,7 +123,9 @@ const MainCanvas: React.FC<Props> = ({}) => {
       // 要素を描画
       canvasElements.forEach((element) => {
         context.fillStyle = "red";
-        context.fillRect(element.x, element.y, element.width, element.height);
+        if (element.type === "rectangle") {
+          context.fillRect(element.x, element.y, element.width, element.height);
+        }
       });
 
       // 描画の状態をもとに戻す

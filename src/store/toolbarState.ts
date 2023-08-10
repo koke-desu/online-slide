@@ -1,9 +1,10 @@
+import { ElementType, elementTypes } from "@/types/CanvasElement";
 import { atom } from "recoil";
 
-export const Tools = ["select", "rectangle", "circle", "line"] as const;
+export const tools = [...elementTypes, "select"];
 
 type ToolbarState = {
-  selectedTool: (typeof Tools)[number];
+  selectedTool: (typeof tools)[number];
 };
 
 export const toolbarStateAtom = atom<ToolbarState>({
