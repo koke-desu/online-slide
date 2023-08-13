@@ -1,11 +1,11 @@
 "use client";
+import { useRectangleOperation } from "@/hooks/canvasElementTools/useRectangleOperation";
+import { useSelectOperation } from "@/hooks/canvasElementTools/useSelectOperation";
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
-import { focusedElementIDAtom, focusedElementSelector } from "@/store/focusedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { toolbarStateAtom } from "@/store/toolbarState";
 import { windowSizeAtom } from "@/store/windowSize";
-import { CanvasElement } from "@/types/CanvasElement";
 import Head from "next/head";
 import React, { useEffect, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
@@ -14,79 +14,29 @@ type Props = {};
 const MainCanvas: React.FC<Props> = ({}) => {
   const windowSize = useRecoilValue(windowSizeAtom);
   const [canvasState, setCanvasState] = useRecoilState(canvasStateAtom);
-  const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
   const mouseState = useRecoilValue(mouseStateAtom);
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
-  const setFocusedElementID = useSetRecoilState(focusedElementIDAtom);
-  const focusedElement = useRecoilValue(focusedElementSelector);
   const toolbar = useRecoilValue(toolbarStateAtom);
+  const rectangleOperation = useRectangleOperation();
+  const selectOperation = useSelectOperation();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (e.button !== 0) return;
-    const { x, y } = canvasMousePosition;
-
     if (toolbar.selectedTool === "select") {
-      setFocusedElementID(element.id);
+      selectOperation.onMouseDown(e);
     }
-
     if (toolbar.selectedTool === "rectangle") {
-      const id = new Date().getTime().toString();
-      const element: CanvasElement = {
-        id,
-        type: "rectangle",
-        width: 0,
-        height: 0,
-        x,
-        y,
-      };
-      setCanvasElements([...canvasElements, element]);
-    }
-  };
-
-  const onMouseUp = () => {
-    const currentElement = canvasElements.find((element) => element.id === focusedElement?.id);
-    if (!currentElement) return;
-
-    if (currentElement.height === 0 || currentElement.width === 0) {
-      setCanvasElements(canvasElements.filter((element) => element.id !== focusedElement?.id));
+      rectangleOperation.onMouseDown(e);
     }
   };
 
   const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (mouseState.buttonClicked.right) {
-      if (!focusedElement) return;
-
-      setCanvasElements(
-        canvasElements.map((element) => {
-          if (element.id !== focusedElement?.id) return element;
-
-          const { x, y } = canvasMousePosition;
-
-          return {
-            ...element,
-            x,
-            y,
-          };
-        })
-      );
+    if (toolbar.selectedTool === "select") {
+      selectOperation.onMouseMove(e);
     }
-
-    if (mouseState.buttonClicked.left) {
-      setCanvasElements(
-        canvasElements.map((element) => {
-          if (element.id !== focusedElement?.id) return element;
-
-          const { x, y } = canvasMousePosition;
-
-          return {
-            ...element,
-            width: x - element.x,
-            height: y - element.y,
-          };
-        })
-      );
+    if (toolbar.selectedTool === "rectangle") {
+      rectangleOperation.onMouseMove(e);
     }
 
     if (mouseState.buttonClicked.wheel) {
@@ -97,6 +47,12 @@ const MainCanvas: React.FC<Props> = ({}) => {
           y: canvasState.translate.y + e.movementY,
         },
       }));
+    }
+  };
+
+  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (toolbar.selectedTool === "select") {
+      rectangleOperation.onMouseUp(e);
     }
   };
 
