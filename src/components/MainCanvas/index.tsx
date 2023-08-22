@@ -3,6 +3,7 @@ import { useRectangleOperation } from "@/hooks/canvasElementTools/useRectangleOp
 import { useSelectOperation } from "@/hooks/canvasElementTools/useSelectOperation";
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
+import { focusedElementIDAtom } from "@/store/focusedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { toolbarStateAtom } from "@/store/toolbarState";
 import { windowSizeAtom } from "@/store/windowSize";
@@ -19,6 +20,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const toolbar = useRecoilValue(toolbarStateAtom);
   const rectangleOperation = useRectangleOperation();
   const selectOperation = useSelectOperation();
+  const focusedElementID = useRecoilValue(focusedElementIDAtom);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -82,6 +84,35 @@ const MainCanvas: React.FC<Props> = ({}) => {
         if (element.type === "rectangle") {
           context.fillRect(element.x, element.y, element.width, element.height);
         }
+        if (element.id === focusedElementID) {
+          context.strokeStyle = "blue";
+          context.lineWidth = 3;
+          context.strokeRect(element.x, element.y, element.width, element.height);
+          context.lineWidth = 2;
+          context.fillStyle = "white";
+          // 頂点に四角を描画
+          const vertexes = [
+            { x: element.x, y: element.y },
+            { x: element.x + element.width, y: element.y },
+            { x: element.x, y: element.y + element.height },
+            { x: element.x + element.width, y: element.y + element.height },
+          ];
+          const vertexSize = 5 * (1 / scale);
+          vertexes.forEach((vertex) => {
+            context.fillRect(
+              vertex.x - vertexSize / 2,
+              vertex.y - vertexSize / 2,
+              vertexSize,
+              vertexSize
+            );
+            context.strokeRect(
+              vertex.x - vertexSize / 2,
+              vertex.y - vertexSize / 2,
+              vertexSize,
+              vertexSize
+            );
+          });
+        }
       });
 
       // 描画の状態をもとに戻す
@@ -98,7 +129,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
     return () => {
       clearInterval(interval);
     };
-  }, [canvasElements, canvasState]);
+  }, [canvasElements, canvasState, focusedElementID]);
 
   return (
     <>

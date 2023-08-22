@@ -20,7 +20,6 @@ export const useSelectOperation: UseToolOperation = () => {
       if (e.button !== 0) return;
       const { x, y } = canvasMousePosition;
       for (let element of canvasElements) {
-        // 先頭の要素以外が選択できない？？？
         if (x < element.x || element.x + element.width < x) continue;
         if (y < element.y || element.y + element.height < y) continue;
         setFocusedElementID(element.id);
