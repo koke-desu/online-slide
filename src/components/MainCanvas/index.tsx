@@ -2,15 +2,14 @@
 import { useRectangleOperation } from "@/hooks/canvasElementTools/useRectangleOperation";
 import { useSelectOperation } from "@/hooks/canvasElementTools/useSelectOperation";
 import { canvasElementsAtom } from "@/store/canvasElements";
-import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
-import { selectedElementIDAtom } from "@/store/selectedElement";
+import { canvasStateAtom } from "@/store/canvasState";
+import { operateObjectSelector, selectedElementIDAtom } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
-import { operateObjectsAtom } from "@/store/operateObject";
 import { toolbarStateAtom } from "@/store/toolbarState";
 import { windowSizeAtom } from "@/store/windowSize";
 import Head from "next/head";
 import React, { useEffect, useRef } from "react";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 type Props = {};
 
 const MainCanvas: React.FC<Props> = ({}) => {
@@ -22,7 +21,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const rectangleOperation = useRectangleOperation();
   const selectOperation = useSelectOperation();
   const selectedElementID = useRecoilValue(selectedElementIDAtom);
-  const operateObjects = useRecoilValue(operateObjectsAtom);
+  const operateObjects = useRecoilValue(operateObjectSelector);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -86,35 +85,6 @@ const MainCanvas: React.FC<Props> = ({}) => {
         if (element.type === "rectangle") {
           context.fillRect(element.x, element.y, element.width, element.height);
         }
-        // if (element.id === selectedElementID) {
-        //   context.strokeStyle = "blue";
-        //   context.lineWidth = 3 * (1 / scale);
-        //   context.strokeRect(element.x, element.y, element.width, element.height);
-        //   context.lineWidth = 2 * (1 / scale);
-        //   context.fillStyle = "white";
-        //   // 頂点に四角を描画
-        //   const vertexes = [
-        //     { x: element.x, y: element.y },
-        //     { x: element.x + element.width, y: element.y },
-        //     { x: element.x, y: element.y + element.height },
-        //     { x: element.x + element.width, y: element.y + element.height },
-        //   ];
-        //   const vertexSize = 5 * (1 / scale);
-        //   vertexes.forEach((vertex) => {
-        //     context.fillRect(
-        //       vertex.x - vertexSize / 2,
-        //       vertex.y - vertexSize / 2,
-        //       vertexSize,
-        //       vertexSize
-        //     );
-        //     context.strokeRect(
-        //       vertex.x - vertexSize / 2,
-        //       vertex.y - vertexSize / 2,
-        //       vertexSize,
-        //       vertexSize
-        //     );
-        //   });
-        // }
       });
       // エレメントの操作用UIを描画
       operateObjects.forEach((operateObject) => {
