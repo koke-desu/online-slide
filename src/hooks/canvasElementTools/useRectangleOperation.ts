@@ -1,6 +1,6 @@
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector } from "@/store/canvasState";
-import { focusedElementIDAtom, focusedElementSelector } from "@/store/focusedElement";
+import { selectedElementIDAtom, selectedElementSelector } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { toolbarStateAtom } from "@/store/toolbarState";
 import { CanvasElement } from "@/types/CanvasElement";
@@ -12,8 +12,8 @@ export const useRectangleOperation: UseToolOperation = () => {
   const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
   const mouseState = useRecoilValue(mouseStateAtom);
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
-  const setFocusedElementID = useSetRecoilState(focusedElementIDAtom);
-  const focusedElement = useRecoilValue(focusedElementSelector);
+  const setSelectedElementID = useSetRecoilState(selectedElementIDAtom);
+  const selectedElement = useRecoilValue(selectedElementSelector);
   const toolbar = useRecoilValue(toolbarStateAtom);
 
   const onMouseDown = useCallback(
@@ -30,14 +30,14 @@ export const useRectangleOperation: UseToolOperation = () => {
         y: canvasMousePosition.y,
       };
       setCanvasElements([...canvasElements, element]);
-      setFocusedElementID(id);
+      setSelectedElementID(id);
     },
     [
       canvasElements,
       canvasMousePosition.x,
       canvasMousePosition.y,
       setCanvasElements,
-      setFocusedElementID,
+      setSelectedElementID,
     ]
   );
 
@@ -46,7 +46,7 @@ export const useRectangleOperation: UseToolOperation = () => {
       if (mouseState.buttonClicked.left) {
         setCanvasElements(
           canvasElements.map((element) => {
-            if (element.id !== focusedElement?.id) return element;
+            if (element.id !== selectedElement?.id) return element;
 
             const { x, y } = canvasMousePosition;
 
@@ -62,7 +62,7 @@ export const useRectangleOperation: UseToolOperation = () => {
     [
       canvasElements,
       canvasMousePosition,
-      focusedElement?.id,
+      selectedElement?.id,
       mouseState.buttonClicked.left,
       setCanvasElements,
     ]
@@ -70,14 +70,14 @@ export const useRectangleOperation: UseToolOperation = () => {
 
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const currentElement = canvasElements.find((element) => element.id === focusedElement?.id);
+      const currentElement = canvasElements.find((element) => element.id === selectedElement?.id);
       if (!currentElement) return;
 
       if (currentElement.height === 0 || currentElement.width === 0) {
-        setCanvasElements(canvasElements.filter((element) => element.id !== focusedElement?.id));
+        setCanvasElements(canvasElements.filter((element) => element.id !== selectedElement?.id));
       }
     },
-    [canvasElements, focusedElement?.id, setCanvasElements]
+    [canvasElements, selectedElement?.id, setCanvasElements]
   );
 
   return {

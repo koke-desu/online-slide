@@ -1,23 +1,23 @@
 "use client";
 import { canvasElementsAtom } from "@/store/canvasElements";
-import { focusedElementSelector } from "@/store/focusedElement";
+import { selectedElementSelector } from "@/store/selectedElement";
 import { CanvasElement } from "@/types/CanvasElement";
 import React, { useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 type Props = {};
 
 const RightControlPanel: React.FC<Props> = ({}) => {
-  const focusedElement = useRecoilValue(focusedElementSelector);
+  const selectedElement = useRecoilValue(selectedElementSelector);
   const [inputElement, setInputElement] = useState<CanvasElement | null>(
-    focusedElement ? { ...focusedElement } : null
+    selectedElement ? { ...selectedElement } : null
   );
   const setElements = useSetRecoilState(canvasElementsAtom);
 
-  if (!focusedElement || !inputElement)
+  if (!selectedElement || !inputElement)
     return <div className="w-60 h-full absolute top-0 right-0 bg-white z-10 flex flex-col"></div>;
 
   const updateElement = () => {
-    if (!focusedElement || !inputElement) return;
+    if (!selectedElement || !inputElement) return;
     setElements((elements) =>
       elements.map((element) => (element.id === inputElement.id ? inputElement : element))
     );

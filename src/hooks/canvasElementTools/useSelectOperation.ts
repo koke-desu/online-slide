@@ -1,6 +1,6 @@
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
-import { focusedElementIDAtom, focusedElementSelector } from "@/store/focusedElement";
+import { selectedElementIDAtom, selectedElementSelector } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { operateObjectsAtom } from "@/store/operateObject";
 import { UseToolOperation } from "@/types/CanvasElementTools";
@@ -12,14 +12,14 @@ export const useSelectOperation: UseToolOperation = () => {
   const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
   const mouseState = useRecoilValue(mouseStateAtom);
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
-  const setFocusedElementID = useSetRecoilState(focusedElementIDAtom);
-  const focusedElement = useRecoilValue(focusedElementSelector);
+  const setSelectedElementID = useSetRecoilState(selectedElementIDAtom);
+  const selectedElement = useRecoilValue(selectedElementSelector);
   const [operateObjects, setOperateObjects] = useRecoilState(operateObjectsAtom);
   const [currentOperate, setCurrentOperate] = useState<OperateObjectType | "move">("move");
   const canvasState = useRecoilValue(canvasStateAtom);
 
   useEffect(() => {
-    if (!focusedElement) return;
+    if (!selectedElement) return;
 
     const vertexSize = 5 * (1 / canvasState.scale);
     const lineWidth = 3 * (1 / canvasState.scale);
@@ -27,65 +27,65 @@ export const useSelectOperation: UseToolOperation = () => {
       {
         type: "resize_left",
         width: lineWidth,
-        height: focusedElement.height,
-        x: focusedElement.x,
-        y: focusedElement.y,
+        height: selectedElement.height,
+        x: selectedElement.x,
+        y: selectedElement.y,
       },
       {
         type: "resize_right",
         width: lineWidth,
-        height: focusedElement.height,
-        x: focusedElement.x + focusedElement.width - lineWidth,
-        y: focusedElement.y,
+        height: selectedElement.height,
+        x: selectedElement.x + selectedElement.width - lineWidth,
+        y: selectedElement.y,
       },
       {
         type: "resize_top",
-        width: focusedElement.width,
+        width: selectedElement.width,
         height: lineWidth,
-        x: focusedElement.x,
-        y: focusedElement.y,
+        x: selectedElement.x,
+        y: selectedElement.y,
       },
       {
         type: "resize_bottom",
-        width: focusedElement.width,
+        width: selectedElement.width,
         height: lineWidth,
-        x: focusedElement.x,
-        y: focusedElement.y + focusedElement.height - lineWidth,
+        x: selectedElement.x,
+        y: selectedElement.y + selectedElement.height - lineWidth,
       },
       {
         type: "resize_left_top",
         width: vertexSize,
         height: vertexSize,
-        x: focusedElement.x,
-        y: focusedElement.y,
+        x: selectedElement.x,
+        y: selectedElement.y,
       },
       {
         type: "resize_left_bottom",
         width: vertexSize,
         height: vertexSize,
-        x: focusedElement.x,
-        y: focusedElement.y + focusedElement.height - vertexSize,
+        x: selectedElement.x,
+        y: selectedElement.y + selectedElement.height - vertexSize,
       },
       {
         type: "resize_right_top",
         width: vertexSize,
         height: vertexSize,
-        x: focusedElement.x + focusedElement.width - vertexSize,
-        y: focusedElement.y,
+        x: selectedElement.x + selectedElement.width - vertexSize,
+        y: selectedElement.y,
       },
       {
         type: "resize_right_bottom",
         width: vertexSize,
         height: vertexSize,
-        x: focusedElement.x + focusedElement.width - vertexSize,
-        y: focusedElement.y + focusedElement.height - vertexSize,
+        x: selectedElement.x + selectedElement.width - vertexSize,
+        y: selectedElement.y + selectedElement.height - vertexSize,
       },
     ]);
-  }, [canvasState.scale, focusedElement, setOperateObjects]);
+  }, [canvasState.scale, selectedElement, setOperateObjects]);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (focusedElement) {
+      if (selectedElement) {
         // 当たり判定補正
         const hitJudge = 10; // 10px分当たり判定を広める
         const { x, y } = canvasMousePosition;
@@ -106,23 +106,23 @@ export const useSelectOperation: UseToolOperation = () => {
       for (let element of canvasElements) {
         if (x < element.x || element.x + element.width < x) continue;
         if (y < element.y || element.y + element.height < y) continue;
-        setFocusedElementID(element.id);
+        setSelectedElementID(element.id);
         return;
       }
 
-      setFocusedElementID(null);
+      setSelectedElementID(null);
     },
-    [canvasElements, canvasMousePosition, focusedElement, operateObjects, setFocusedElementID]
+    [canvasElements, canvasMousePosition, selectedElement, operateObjects, setSelectedElementID]
   );
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (mouseState.buttonClicked.left) {
-        if (focusedElement) {
+        if (selectedElement) {
           if (currentOperate === "move") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== focusedElement?.id) return element;
+                if (element.id !== selectedElement?.id) return element;
 
                 return {
                   ...element,
@@ -135,7 +135,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_left") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== focusedElement?.id) return element;
+                if (element.id !== selectedElement?.id) return element;
 
                 return {
                   ...element,
@@ -148,7 +148,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_right") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== focusedElement?.id) return element;
+                if (element.id !== selectedElement?.id) return element;
 
                 return {
                   ...element,
@@ -160,7 +160,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_top") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== focusedElement?.id) return element;
+                if (element.id !== selectedElement?.id) return element;
 
                 return {
                   ...element,
@@ -173,7 +173,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_bottom") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== focusedElement?.id) return element;
+                if (element.id !== selectedElement?.id) return element;
 
                 return {
                   ...element,
@@ -188,7 +188,7 @@ export const useSelectOperation: UseToolOperation = () => {
     [
       canvasElements,
       currentOperate,
-      focusedElement,
+      selectedElement,
       mouseState.buttonClicked.left,
       setCanvasElements,
     ]

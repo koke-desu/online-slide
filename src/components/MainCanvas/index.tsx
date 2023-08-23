@@ -3,7 +3,7 @@ import { useRectangleOperation } from "@/hooks/canvasElementTools/useRectangleOp
 import { useSelectOperation } from "@/hooks/canvasElementTools/useSelectOperation";
 import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
-import { focusedElementIDAtom } from "@/store/focusedElement";
+import { selectedElementIDAtom } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { operateObjectsAtom } from "@/store/operateObject";
 import { toolbarStateAtom } from "@/store/toolbarState";
@@ -21,7 +21,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
   const toolbar = useRecoilValue(toolbarStateAtom);
   const rectangleOperation = useRectangleOperation();
   const selectOperation = useSelectOperation();
-  const focusedElementID = useRecoilValue(focusedElementIDAtom);
+  const selectedElementID = useRecoilValue(selectedElementIDAtom);
   const operateObjects = useRecoilValue(operateObjectsAtom);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -86,7 +86,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
         if (element.type === "rectangle") {
           context.fillRect(element.x, element.y, element.width, element.height);
         }
-        // if (element.id === focusedElementID) {
+        // if (element.id === selectedElementID) {
         //   context.strokeStyle = "blue";
         //   context.lineWidth = 3 * (1 / scale);
         //   context.strokeRect(element.x, element.y, element.width, element.height);
@@ -172,7 +172,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
     return () => {
       clearInterval(interval);
     };
-  }, [canvasElements, canvasState, focusedElementID, operateObjects]);
+  }, [canvasElements, canvasState, selectedElementID, operateObjects]);
 
   return (
     <>
