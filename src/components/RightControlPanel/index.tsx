@@ -5,6 +5,7 @@ import { CanvasElement } from "@/types/CanvasElement";
 import React, { useEffect, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import ParameterInput from "../ParameterInput";
+import ColorInput from "../ColorInput";
 type Props = {};
 
 const RightControlPanel: React.FC<Props> = ({}) => {
@@ -49,6 +50,12 @@ const RightControlPanel: React.FC<Props> = ({}) => {
           value={selectedElement.height}
           onSubmit={(val) => updateElement({ height: val })}
           label="H"
+        />
+      </div>
+      <div className="w-full p-4">
+        <ColorInput
+          value={selectedElement.fill}
+          onChange={(color) => updateElement({ fill: color })}
         />
       </div>
     </div>

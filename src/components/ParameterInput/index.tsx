@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-type Props = {
-  value: number;
-  onSubmit: (value: number) => void;
-  label: string;
+type Props<T extends string | number> = {
+  value: T;
+  onSubmit: (value: T) => void;
+  label?: string;
 };
 
-const ParameterInput: React.FC<Props> = ({ value, onSubmit, label }) => {
-  const [inputValue, setInputValue] = useState<number>(value);
+const ParameterInput = <T extends string | number>(props: Props<T>) => {
+  const { value, onSubmit, label } = props;
+  const [inputValue, setInputValue] = useState(value);
   useEffect(() => {
     setInputValue(value);
   }, [value]);
@@ -24,9 +25,10 @@ const ParameterInput: React.FC<Props> = ({ value, onSubmit, label }) => {
           className="outline-none w-full text-black"
           value={inputValue}
           onChange={(e) => {
-            setInputValue(Number(e.target.value));
+            if (typeof value === "string") setInputValue(e.target.value as unknown as T);
+            if (typeof value === "number") setInputValue(Number(e.target.value) as unknown as T);
           }}
-          type="number"
+          type={typeof value === "string" ? "text" : "number"}
         />
       </label>
     </form>

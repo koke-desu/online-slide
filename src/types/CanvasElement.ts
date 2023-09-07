@@ -35,8 +35,14 @@ export class ElementColor {
     this.a = rgba.a;
   }
 
+  private toHexString = (value: number) => {
+    const str = value.toString(16);
+    return str.length === 1 ? "0" + str : str;
+  };
+
   toHex() {
-    return "#" + this.r.toString(16) + this.g.toString(16) + this.b.toString(16);
+    const { r, g, b } = this;
+    return "#" + this.toHexString(r) + this.toHexString(g) + this.toHexString(b);
   }
 
   fromHex(hex: string) {
