@@ -3,7 +3,7 @@ import { canvasMousePositionSelector } from "@/store/canvasState";
 import { selectedElementIDAtom, selectedElementSelector } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
 import { toolbarStateAtom } from "@/store/toolbarState";
-import { CanvasElement } from "@/types/CanvasElement";
+import { CanvasElement, ElementColor } from "@/types/CanvasElement";
 import { UseToolOperation } from "@/types/CanvasElementTools";
 import { useCallback } from "react";
 import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
@@ -28,6 +28,11 @@ export const useRectangleOperation: UseToolOperation = () => {
         height: 0,
         x: canvasMousePosition.x,
         y: canvasMousePosition.y,
+        fill: new ElementColor("#444444"),
+        stroke: {
+          color: new ElementColor("#000000"),
+          width: 0,
+        },
       };
       setCanvasElements([...canvasElements, element]);
       setSelectedElementID(id);
