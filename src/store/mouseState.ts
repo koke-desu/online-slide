@@ -27,6 +27,8 @@ export const mouseStateAtom = atom({
   },
   effects: [
     ({ setSelf }) => {
+      if (typeof window === "undefined") return;
+
       const handler = (e: MouseEvent) => {
         setSelf((state) => ({
           ...(state as MouseState),
@@ -42,6 +44,8 @@ export const mouseStateAtom = atom({
       };
     },
     ({ setSelf }) => {
+      if (typeof window === "undefined") return;
+
       const handleMouseDown = (e: MouseEvent) => {
         console.log(e.button);
         setSelf((state) => ({

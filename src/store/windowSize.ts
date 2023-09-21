@@ -8,6 +8,7 @@ export const windowSizeAtom = atom({
   },
   effects: [
     ({ setSelf }) => {
+      if (typeof window === "undefined") return;
       const handler = () => {
         setSelf({
           width: window.innerWidth,

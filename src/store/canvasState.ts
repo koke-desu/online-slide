@@ -19,6 +19,8 @@ export const canvasStateAtom = atom<CanvasState>({
   },
   effects: [
     ({ setSelf }) => {
+      if (typeof document === "undefined") return;
+
       const onWheel = (e: WheelEvent) => {
         if (!e.ctrlKey) return;
 
@@ -36,6 +38,7 @@ export const canvasStateAtom = atom<CanvasState>({
           return { ...state, scale: newScale };
         });
       };
+
       document.addEventListener("wheel", onWheel, { passive: false });
 
       return () => {
