@@ -2,7 +2,6 @@ import { canvasElementsAtom } from "@/store/canvasElements";
 import { canvasMousePositionSelector } from "@/store/canvasState";
 import { selectedElementIDAtom, selectedElementSelector } from "@/store/selectedElement";
 import { mouseStateAtom } from "@/store/mouseState";
-import { toolbarStateAtom } from "@/store/toolbarState";
 import { CanvasElement, ElementColor } from "@/types/CanvasElement";
 import { UseToolOperation } from "@/types/CanvasElementTools";
 import { useCallback } from "react";
@@ -14,7 +13,6 @@ export const useRectangleOperation: UseToolOperation = () => {
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
   const setSelectedElementID = useSetRecoilState(selectedElementIDAtom);
   const selectedElement = useRecoilValue(selectedElementSelector);
-  const toolbar = useRecoilValue(toolbarStateAtom);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -35,7 +33,7 @@ export const useRectangleOperation: UseToolOperation = () => {
         },
       };
       setCanvasElements([...canvasElements, element]);
-      setSelectedElementID(id);
+      setSelectedElementID([id]);
     },
     [
       canvasElements,
@@ -49,9 +47,10 @@ export const useRectangleOperation: UseToolOperation = () => {
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (mouseState.buttonClicked.left) {
+        if (!selectedElement) return;
         setCanvasElements(
           canvasElements.map((element) => {
-            if (element.id !== selectedElement?.id) return element;
+            if (!selectedElement.some((val) => val.id === element.id)) return element;
 
             const { x, y } = canvasMousePosition;
 
@@ -67,22 +66,24 @@ export const useRectangleOperation: UseToolOperation = () => {
     [
       canvasElements,
       canvasMousePosition,
-      selectedElement?.id,
       mouseState.buttonClicked.left,
+      selectedElement,
       setCanvasElements,
     ]
   );
 
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const currentElement = canvasElements.find((element) => element.id === selectedElement?.id);
+      if (!selectedElement) return;
+
+      const currentElement = canvasElements.find((element) => element.id === selectedElement[0].id);
       if (!currentElement) return;
 
       if (currentElement.height === 0 || currentElement.width === 0) {
-        setCanvasElements(canvasElements.filter((element) => element.id !== selectedElement?.id));
+        setCanvasElements(canvasElements.filter((element) => element.id !== selectedElement[0].id));
       }
     },
-    [canvasElements, selectedElement?.id, setCanvasElements]
+    [canvasElements, selectedElement, setCanvasElements]
   );
 
   return {

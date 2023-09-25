@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 type Props<T extends string | number> = {
-  value: T;
+  value: T | null;
   onSubmit: (value: T) => void;
   label?: string;
 };
@@ -15,7 +15,7 @@ const ParameterInput = <T extends string | number>(props: Props<T>) => {
   return (
     <form
       onSubmit={(e) => {
-        onSubmit(inputValue);
+        onSubmit(inputValue as T);
         e.preventDefault();
       }}
     >
@@ -23,7 +23,7 @@ const ParameterInput = <T extends string | number>(props: Props<T>) => {
         <span className=" text-gray-600">{label}</span>
         <input
           className="outline-none w-full text-black"
-          value={inputValue}
+          value={inputValue === null ? "mixed" : inputValue}
           onChange={(e) => {
             if (typeof value === "string") setInputValue(e.target.value as unknown as T);
             if (typeof value === "number") setInputValue(Number(e.target.value) as unknown as T);

@@ -11,6 +11,7 @@ export const operateObjectTypes = [
   "round_left_bottom",
   "round_right_top",
   "round_right_bottom",
+  "line", // 見た目だけの操作することが出来ない線
 ] as const;
 export type OperateObjectType = (typeof operateObjectTypes)[number];
 

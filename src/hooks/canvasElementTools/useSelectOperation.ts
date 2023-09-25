@@ -1,5 +1,5 @@
 import { canvasElementsAtom } from "@/store/canvasElements";
-import { canvasMousePositionSelector, canvasStateAtom } from "@/store/canvasState";
+import { canvasMousePositionSelector } from "@/store/canvasState";
 import {
   operateObjectSelector,
   selectedElementIDAtom,
@@ -8,17 +8,19 @@ import {
 import { mouseStateAtom } from "@/store/mouseState";
 import { UseToolOperation } from "@/types/CanvasElementTools";
 import { OperateObjectType } from "@/types/OperateObject";
-import { useCallback, useEffect, useState } from "react";
-import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
+import { useCallback, useState } from "react";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { keyboardStateAtom } from "@/store/keyboardState";
 
 export const useSelectOperation: UseToolOperation = () => {
   const canvasMousePosition = useRecoilValue(canvasMousePositionSelector);
   const mouseState = useRecoilValue(mouseStateAtom);
   const [canvasElements, setCanvasElements] = useRecoilState(canvasElementsAtom);
-  const setSelectedElementID = useSetRecoilState(selectedElementIDAtom);
+  const [selectedElementID, setSelectedElementID] = useRecoilState(selectedElementIDAtom);
   const selectedElement = useRecoilValue(selectedElementSelector);
   const [currentOperate, setCurrentOperate] = useState<OperateObjectType | "move">("move");
   const operateObjects = useRecoilValue(operateObjectSelector);
+  const keyboardState = useRecoilValue(keyboardStateAtom);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -43,13 +45,36 @@ export const useSelectOperation: UseToolOperation = () => {
       for (let element of canvasElements) {
         if (x < element.x || element.x + element.width < x) continue;
         if (y < element.y || element.y + element.height < y) continue;
-        setSelectedElementID(element.id);
+        if (!keyboardState.Shift) {
+          setSelectedElementID([element.id]);
+          return;
+        }
+
+        if (!selectedElementID) {
+          setSelectedElementID([element.id]);
+          return;
+        }
+
+        if (selectedElementID.includes(element.id)) {
+          setSelectedElementID(selectedElementID.filter((id) => id !== element.id));
+          return;
+        }
+
+        setSelectedElementID([...selectedElementID, element.id]);
         return;
       }
 
       setSelectedElementID(null);
     },
-    [canvasElements, canvasMousePosition, selectedElement, operateObjects, setSelectedElementID]
+    [
+      selectedElement,
+      canvasMousePosition,
+      setSelectedElementID,
+      operateObjects,
+      canvasElements,
+      keyboardState.Shift,
+      selectedElementID,
+    ]
   );
 
   const onMouseMove = useCallback(
@@ -59,7 +84,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "move") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== selectedElement?.id) return element;
+                if (!selectedElementID?.includes(element.id)) return element;
 
                 return {
                   ...element,
@@ -72,7 +97,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_left") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== selectedElement?.id) return element;
+                if (!selectedElementID?.includes(element.id)) return element;
 
                 return {
                   ...element,
@@ -85,7 +110,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_right") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== selectedElement?.id) return element;
+                if (!selectedElementID?.includes(element.id)) return element;
 
                 return {
                   ...element,
@@ -97,7 +122,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_top") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== selectedElement?.id) return element;
+                if (!selectedElementID?.includes(element.id)) return element;
 
                 return {
                   ...element,
@@ -110,7 +135,7 @@ export const useSelectOperation: UseToolOperation = () => {
           if (currentOperate === "resize_bottom") {
             setCanvasElements(
               canvasElements.map((element) => {
-                if (element.id !== selectedElement?.id) return element;
+                if (!selectedElementID?.includes(element.id)) return element;
 
                 return {
                   ...element,
@@ -123,11 +148,12 @@ export const useSelectOperation: UseToolOperation = () => {
       }
     },
     [
-      canvasElements,
-      currentOperate,
-      selectedElement,
       mouseState.buttonClicked.left,
+      selectedElement,
+      currentOperate,
       setCanvasElements,
+      canvasElements,
+      selectedElementID,
     ]
   );
 

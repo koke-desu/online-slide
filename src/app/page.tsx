@@ -1,8 +1,21 @@
+"use client";
 import HeadToolbar from "@/components/HeadToolbar";
 import MainCanvas from "@/components/MainCanvas";
 import RightControlPanel from "@/components/RightControlPanel";
+import { useEffect } from "react";
 
 const Home = () => {
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8080/ws/");
+    ws.onopen = () => {
+      ws.send("hello");
+    };
+
+    ws.onmessage = (e) => {
+      console.log(e.data);
+    };
+  }, []);
+
   return (
     <main className="h-screen w-screen bg-white flex flex-col overflow-hidden">
       <HeadToolbar />
