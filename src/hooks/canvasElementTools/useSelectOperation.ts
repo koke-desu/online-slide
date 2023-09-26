@@ -21,13 +21,19 @@ export const useSelectOperation: UseToolOperation = () => {
   const [currentOperate, setCurrentOperate] = useState<OperateObjectType | "move">("move");
   const operateObjects = useRecoilValue(operateObjectSelector);
   const keyboardState = useRecoilValue(keyboardStateAtom);
+  const [mouseDownPosition, setMouseDownPosition] = useState({ x: 0, y: 0 });
+  const [isUnselecting, setIsUnselecting] = useState(false);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (e.button !== 0) return;
+
+      const { x, y } = canvasMousePosition;
+      setMouseDownPosition({ x, y });
+
       if (selectedElement) {
         // 当たり判定補正
         const hitJudge = 10; // 10px分当たり判定を広める
-        const { x, y } = canvasMousePosition;
         operateObjects.forEach((operateObject) => {
           if (
             operateObject.x - hitJudge < x &&
@@ -40,8 +46,6 @@ export const useSelectOperation: UseToolOperation = () => {
         });
       }
 
-      if (e.button !== 0) return;
-      const { x, y } = canvasMousePosition;
       for (let element of canvasElements) {
         if (x < element.x || element.x + element.width < x) continue;
         if (y < element.y || element.y + element.height < y) continue;
@@ -56,7 +60,7 @@ export const useSelectOperation: UseToolOperation = () => {
         }
 
         if (selectedElementID.includes(element.id)) {
-          setSelectedElementID(selectedElementID.filter((id) => id !== element.id));
+          setIsUnselecting(true);
           return;
         }
 
@@ -67,8 +71,8 @@ export const useSelectOperation: UseToolOperation = () => {
       setSelectedElementID(null);
     },
     [
-      selectedElement,
       canvasMousePosition,
+      selectedElement,
       setSelectedElementID,
       operateObjects,
       canvasElements,
@@ -157,9 +161,40 @@ export const useSelectOperation: UseToolOperation = () => {
     ]
   );
 
-  const onMouseUp = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    setCurrentOperate("move");
-  }, []);
+  const onMouseUp = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const { x, y } = canvasMousePosition;
+      if (mouseState.buttonClicked.left && keyboardState.Shift && isUnselecting) {
+        if (x === mouseDownPosition.x && y === mouseDownPosition.y) console.log("a");
+        canvasElements.forEach((element) => {
+          if (
+            element.x < x &&
+            x < element.x + element.width &&
+            element.y < y &&
+            y < element.y + element.height
+          ) {
+            setSelectedElementID(
+              (elements) => elements?.filter((ele) => ele !== element.id) || null
+            );
+          }
+        });
+      }
+
+      setCurrentOperate("move");
+      setMouseDownPosition({ x: 0, y: 0 });
+      setIsUnselecting(false);
+    },
+    [
+      canvasElements,
+      canvasMousePosition,
+      isUnselecting,
+      keyboardState.Shift,
+      mouseDownPosition.x,
+      mouseDownPosition.y,
+      mouseState.buttonClicked.left,
+      setSelectedElementID,
+    ]
+  );
 
   return { onMouseDown, onMouseMove, onMouseUp };
 };
