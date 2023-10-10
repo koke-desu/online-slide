@@ -23,6 +23,7 @@ export const useSelectOperation: UseToolOperation = () => {
   const keyboardState = useRecoilValue(keyboardStateAtom);
   const [mouseDownPosition, setMouseDownPosition] = useState({ x: 0, y: 0 });
   const [isUnselecting, setIsUnselecting] = useState(false);
+  const isMultiSelected = selectedElementID?.length || 0 > 1;
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -49,7 +50,7 @@ export const useSelectOperation: UseToolOperation = () => {
       for (let element of canvasElements) {
         if (x < element.x || element.x + element.width < x) continue;
         if (y < element.y || element.y + element.height < y) continue;
-        if (!keyboardState.Shift) {
+        if (!keyboardState.Shift && !selectedElementID?.includes(element.id)) {
           setSelectedElementID([element.id]);
           return;
         }
@@ -68,11 +69,17 @@ export const useSelectOperation: UseToolOperation = () => {
         return;
       }
 
+      if (isMultiSelected) {
+        setIsUnselecting(true);
+        return;
+      }
+
       setSelectedElementID(null);
     },
     [
       canvasMousePosition,
       selectedElement,
+      isMultiSelected,
       setSelectedElementID,
       operateObjects,
       canvasElements,
@@ -164,20 +171,23 @@ export const useSelectOperation: UseToolOperation = () => {
   const onMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const { x, y } = canvasMousePosition;
-      if (mouseState.buttonClicked.left && keyboardState.Shift && isUnselecting) {
-        if (x === mouseDownPosition.x && y === mouseDownPosition.y) console.log("a");
-        canvasElements.forEach((element) => {
+      if (mouseState.buttonClicked.left && isUnselecting) {
+        if (x !== mouseDownPosition.x || y !== mouseDownPosition.y) return;
+        for (let element of canvasElements) {
           if (
             element.x < x &&
             x < element.x + element.width &&
             element.y < y &&
             y < element.y + element.height
           ) {
-            setSelectedElementID(
-              (elements) => elements?.filter((ele) => ele !== element.id) || null
-            );
+            setSelectedElementID((elements) => {
+              const newElements = elements?.filter((id) => id !== element.id);
+              return newElements?.length ? newElements : null;
+            });
+            return;
           }
-        });
+        }
+        setSelectedElementID(null);
       }
 
       setCurrentOperate("move");
@@ -188,7 +198,6 @@ export const useSelectOperation: UseToolOperation = () => {
       canvasElements,
       canvasMousePosition,
       isUnselecting,
-      keyboardState.Shift,
       mouseDownPosition.x,
       mouseDownPosition.y,
       mouseState.buttonClicked.left,
