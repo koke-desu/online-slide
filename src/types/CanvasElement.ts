@@ -1,9 +1,9 @@
-export const elementTypes = ["rectangle", "circle", "line"] as const;
+export const elementTypes = ["Rectangle", "Circle", "Line"] as const;
 export type ElementType = (typeof elementTypes)[number];
 
 export type CanvasElement = {
   id: string;
-  type: ElementType;
+  element_type: ElementType;
   width: number;
   height: number;
   x: number;
