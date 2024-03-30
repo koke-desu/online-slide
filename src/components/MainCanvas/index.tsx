@@ -82,7 +82,7 @@ const MainCanvas: React.FC<Props> = ({}) => {
       // 要素を描画
       canvasElements.forEach((element) => {
         context.fillStyle = element.fill.toHex();
-        if (element.element_type === "Rectangle") {
+        if (element.type === "rectangle") {
           context.fillRect(element.x, element.y, element.width, element.height);
         }
       });

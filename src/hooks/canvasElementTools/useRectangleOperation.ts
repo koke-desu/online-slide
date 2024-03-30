@@ -21,7 +21,7 @@ export const useRectangleOperation: UseToolOperation = () => {
       const id = new Date().getTime().toString();
       const element: CanvasElement = {
         id,
-        element_type: "Rectangle",
+        type: "rectangle",
         width: 0,
         height: 0,
         x: canvasMousePosition.x,
