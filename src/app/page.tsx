@@ -7,16 +7,16 @@ import { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
 
 const Home = () => {
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080/ws/");
-    ws.onopen = () => {
-      ws.send("hello");
-    };
+  // useEffect(() => {
+  //   const ws = new WebSocket("ws://localhost:8080/ws/");
+  //   ws.onopen = () => {
+  //     ws.send("hello");
+  //   };
 
-    ws.onmessage = (e) => {
-      console.log(e.data);
-    };
-  }, []);
+  //   ws.onmessage = (e) => {
+  //     console.log(e.data);
+  //   };
+  // }, []);
 
   const setWindowSize = useSetRecoilState(windowSizeAtom);
   useEffect(() => {
