@@ -23,7 +23,7 @@ export const useSelectOperation: UseToolOperation = () => {
   const keyboardState = useRecoilValue(keyboardStateAtom);
   const [mouseDownPosition, setMouseDownPosition] = useState({ x: 0, y: 0 });
   const [isUnselecting, setIsUnselecting] = useState(false);
-  const isMultiSelected = selectedElementID?.length || 0 > 1;
+  const isMultiSelected = (selectedElementID?.length || 0) > 1;
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -172,7 +172,12 @@ export const useSelectOperation: UseToolOperation = () => {
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const { x, y } = canvasMousePosition;
       if (mouseState.buttonClicked.left && isUnselecting) {
-        if (x !== mouseDownPosition.x || y !== mouseDownPosition.y) return;
+        if (x !== mouseDownPosition.x || y !== mouseDownPosition.y) {
+          setCurrentOperate("move");
+          setMouseDownPosition({ x: 0, y: 0 });
+          setIsUnselecting(false);
+          return;
+        }
         for (let element of canvasElements) {
           if (
             element.x < x &&
@@ -184,6 +189,7 @@ export const useSelectOperation: UseToolOperation = () => {
               const newElements = elements?.filter((id) => id !== element.id);
               return newElements?.length ? newElements : null;
             });
+            console.log("a");
             return;
           }
         }
